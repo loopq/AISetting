@@ -1,0 +1,4 @@
+prefix_rule(pattern=["./gradlew", "assembleDebug"], decision="allow")
+prefix_rule(pattern=["./gradlew", "assembleOcavatarDebug"], decision="allow")
+prefix_rule(pattern=["./gradlew", "assembleNekuDebug"], decision="allow")
+prefix_rule(pattern=["npx", "-y", "@larksuiteoapi/lark-mcp"], decision="allow")

@@ -1,0 +1,49 @@
+project_doc_fallback_filenames = ["CLAUDE.md"] # agents.md 找不到，则找 claude.md ，和 Claude Code 使用同一份约束
+suppress_unstable_features_warning = true
+
+# 默认沙盒模式
+sandbox_mode = "workspace-write"
+# 审批策略
+approval_policy = "on-request"
+
+model = "gpt-5.3-codex"
+review_model = "gpt-5.3-codex" # 默认 "gpt-5.2-codex"
+model_reasoning_effort = "high"
+
+model_context_window = 1000000 # 模型上下文窗口大小，默认 1000000 （ 1M ） for gpt-5.4
+model_auto_compact_token_limit = 500000 # for gpt-5.4 虽然是 1M ，但是有效注意力不够，不建议开的太高
+service_tier = "fast"
+
+[features]
+shell_tool = true # 启用 shell 工具。默认: true
+apply_patch_freeform = true # 通过自由格式编辑路径包含 apply_patch （影响默认工具集）。默认: false
+shell_snapshot = true # 启用 shell 快照功能。默认: false
+undo = true # 启用 undo 功能。默认: true
+unified_exec = true # 使用统一 PTY 执行工具
+multi_agent = true
+steer = true
+prevent_idle_sleep = true
+child_agents_md = true
+
+memories = true # 开启记忆
+sqlite = true # 可配可不配，随意
+fast_mode = true # 必开，完全不同的体验，当然也会让 gpt-5.4 用量变 2 倍
+
+
+[memories] # 强烈建议用新模型来总结 memories
+consolidation_model = "gpt-5.4"
+extract_model = "gpt-5.4"
+# generate_memories = true # 默认 true
+# use_memories = true # 默认 true ，表示把 memory_summary.md 注入 developer instructions
+max_raw_memories_for_consolidation = 512
+max_unused_days = 30 # 默认 30
+max_rollout_age_days = 45 # 默认 30
+
+[notice.model_migrations]
+"gpt-5.3-codex" = "gpt-5.4"
+
+[mcp_servers.feishu]
+command = "npx"
+args = ["-y", "@larksuiteoapi/lark-mcp", "mcp"]
+# max_rollouts_per_startup = 16 # 默认 16
+# min_rollout_idle_hours = 6 # 默认 6

@@ -1,0 +1,63 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Logs
+*.log
+logs/
+log/
+
+# Cache
+.cache/
+cache/
+tmp/
+temp/
+
+# State
+sessions/
+history/
+state/
+*.lock
+*.jsonl
+
+# SQLite databases
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Secrets
+.env
+.env.*
+secrets.*
+token*
+auth.json
+credentials*
+
+# Claude specific
+**/backups/**
+**/file-history/**
+**/projects/**
+**/tasks/**
+**/todos/**
+**/telemetry/**
+**/debug/**
+**/paste-cache/**
+**/downloads/**
+**/shell-snapshots/**
+**/session-env/**
+**/usage-data/**
+**/plans/**
+**/config.json
+**/mcp-needs-auth-cache.json
+**/telegram_chat_id
+**/telegram_offset
+**/stats-cache.json
+
+# Codex specific
+**/.tmp/**
+**/memories/**
+**/models_cache.json
+**/version.json
+
+# Runtime
+.runtime/

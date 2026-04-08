@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "ANTHROPIC_AUTH_TOKEN": "${ANTHROPIC_AUTH_TOKEN}",
+    "ANTHROPIC_BASE_URL": "${ANTHROPIC_BASE_URL:-http://127.0.0.1:15721}"
+  },
+  "includeCoAuthoredBy": false,
+  "permissions": {
+    "allow": [
+      "Bash(ls *)",
+      "Bash(pwd)",
+      "Bash(find *)",
+      "Bash(grep *)",
+      "Bash(cat *)",
+      "Bash(du *)",
+      "Bash(file *)",
+      "Bash(echo *)",
+      "Bash(which *)",
+      "Bash(git log *)",
+      "Bash(git fetch *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git branch *)",
+      "Bash(git remote *)",
+      "Bash(git show *)",
+      "Bash(git add *)",
+      "Read",
+      "Grep",
+      "Glob",
+      "WebSearch",
+      "Bash(./gradlew assembleDebug:*)",
+      "mcp__figma__get_screenshot",
+      "mcp__figma__get_design_context",
+      "Bash(brew list:*)",
+      "Bash(brew info:*)",
+      "Bash(brew install:*)"
+    ],
+    "defaultMode": "plan"
+  },
+  "model": "claude-sonnet-4-5",
+  "statusLine": {
+    "type": "command",
+    "command": "bun x ccusage statusline",
+    "padding": 0
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "superpowers@superpowers-marketplace": true
+  },
+  "hasCompletedOnboarding": true,
+  "skipDangerousModePermissionPrompt": true
+}
