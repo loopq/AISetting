@@ -1,0 +1,100 @@
+add_newline = false
+command_timeout = 1000
+
+format = """
+$directory\
+$git_branch\
+$git_status\
+$fill\
+$nodejs\
+$python\
+$java\
+$kotlin\
+$dart\
+$golang\
+$rust\
+$cmd_duration\
+$line_break\
+$character
+"""
+
+[fill]
+symbol = " "
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+style = "bold cyan"
+read_only = " 󰌾"
+
+[git_branch]
+symbol = " "
+style = "bold purple"
+format = " [$symbol$branch]($style)"
+
+[git_status]
+style = "bold red"
+format = "([$all_status$ahead_behind]($style))"
+
+[nodejs]
+symbol = "⬢ "
+style = "bold green"
+format = " [$symbol$version]($style)"
+
+[python]
+symbol = "🐍 "
+style = "bold yellow"
+format = " [$symbol$version]($style)"
+
+[java]
+symbol = "☕ "
+style = "bold red"
+format = " [$symbol$version]($style)"
+
+[kotlin]
+symbol = "🅺 "
+style = "bold 208"
+format = " [$symbol$version]($style)"
+
+[dart]
+symbol = "🎯 "
+style = "bold blue"
+format = " [$symbol$version]($style)"
+
+[golang]
+symbol = "🐹 "
+style = "bold cyan"
+format = " [$symbol$version]($style)"
+
+[rust]
+symbol = "🦀 "
+style = "bold 209"
+format = " [$symbol$version]($style)"
+
+[cmd_duration]
+min_time = 500
+style = "bright-black"
+format = " [ $duration]($style)"
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold green)"
+
+[package]
+disabled = true
+
+[aws]
+disabled = true
+
+[gcloud]
+disabled = true
+
+[docker_context]
+disabled = true
+
+[hostname]
+disabled = true
+
+[username]
+disabled = true

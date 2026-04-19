@@ -1,0 +1,4 @@
+# This file contains fish universal variable definitions.
+# VERSION: 3.0
+SETUVAR __fish_initialized:4300
+SETUVAR fish_user_paths:/Applications/Visual\x20Studio\x20Code\x2eapp/Contents/Resources/app/bin\x1e/Library/Java/JavaVirtualMachines/jdk\x2d17\x2ejdk/Contents/Home/bin\x1e/Users/loopq/Library/Android/sdk/platform\x2dtools\x1e/bin\x1e\x2e\x1e/Users/loopq/\x2elocal/bin
