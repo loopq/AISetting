@@ -18,29 +18,51 @@ This skill bridges `superpowers:executing-plans` with `review-loop` — it initi
 Run this bash command to activate the stop hook before any work begins:
 
 ```bash
-set -e \
-&& REVIEW_ID="$(date +%Y%m%d-%H%M%S)-$(openssl rand -hex 3 2>/dev/null || head -c 3 /dev/urandom | od -An -tx1 | tr -d ' \n')" \
-&& mkdir -p .claude reviews \
-&& if [ -f .claude/review-loop.local.md ]; then echo "Error: A review loop is already active. Use /cancel-review first." && exit 1; fi \
-&& command -v codex >/dev/null 2>&1 || { echo "Error: Codex CLI is not installed. Install: npm install -g @openai/codex"; exit 1; } \
-&& CODEX_CONFIG="${HOME}/.codex/config.toml" \
-&& if [ ! -f "$CODEX_CONFIG" ]; then mkdir -p "${HOME}/.codex" && printf '[features]\nmulti_agent = true\n' > "$CODEX_CONFIG"; \
-   elif ! grep -qE '^\s*multi_agent\s*=\s*true' "$CODEX_CONFIG"; then \
-     if grep -qE '^\[features\]' "$CODEX_CONFIG"; then \
-       if [ "$(uname)" = "Darwin" ]; then sed -i '' '/^\[features\]/a\'$'\n''multi_agent = true' "$CODEX_CONFIG"; \
-       else sed -i '/^\[features\]/a multi_agent = true' "$CODEX_CONFIG"; fi; \
-     else printf '\n[features]\nmulti_agent = true\n' >> "$CODEX_CONFIG"; fi; \
-   fi \
-&& cat > .claude/review-loop.local.md << STATE_EOF
+bash <<'INIT_SH'
+set -e
+
+REVIEW_ID="$(date +%Y%m%d-%H%M%S)-$(openssl rand -hex 3 2>/dev/null || head -c 3 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+mkdir -p .claude reviews
+
+if [ -f .claude/review-loop.local.md ]; then
+  echo "Error: A review loop is already active. Use /cancel-review first." >&2
+  exit 1
+fi
+
+if ! command -v codex >/dev/null 2>&1; then
+  echo "Error: Codex CLI is not installed. Install: npm install -g @openai/codex" >&2
+  exit 1
+fi
+
+CODEX_CONFIG="${HOME}/.codex/config.toml"
+if [ ! -f "$CODEX_CONFIG" ]; then
+  mkdir -p "${HOME}/.codex"
+  printf '[features]\nmulti_agent = true\n' > "$CODEX_CONFIG"
+elif ! grep -qE '^\s*multi_agent\s*=\s*true' "$CODEX_CONFIG"; then
+  if grep -qE '^\[features\]' "$CODEX_CONFIG"; then
+    if [ "$(uname)" = "Darwin" ]; then
+      sed -i '' '/^\[features\]/a\'$'\n''multi_agent = true' "$CODEX_CONFIG"
+    else
+      sed -i '/^\[features\]/a multi_agent = true' "$CODEX_CONFIG"
+    fi
+  else
+    printf '\n[features]\nmulti_agent = true\n' >> "$CODEX_CONFIG"
+  fi
+fi
+
+STARTED_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+cat > .claude/review-loop.local.md <<STATE_EOF
 ---
 active: true
 phase: task
 review_id: ${REVIEW_ID}
-started_at: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+started_at: ${STARTED_AT}
 ---
 Superpowers task execution — review all changes made during this session.
 STATE_EOF
-&& echo "Review Loop activated (ID: ${REVIEW_ID}). Stop hook will intercept completion."
+
+echo "Review Loop activated (ID: ${REVIEW_ID}). Stop hook will intercept completion."
+INIT_SH
 ```
 
 If the command succeeds, proceed. If it fails (e.g., Codex not installed), stop and fix the prerequisite.

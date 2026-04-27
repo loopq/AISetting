@@ -1,19 +1,12 @@
 #!/bin/bash
 # Claude Code Stop hook - sends response back to Telegram
 # Install: copy to ~/.claude/hooks/ and add to ~/.claude/settings.json
-#
-# ⚠️ 需要在 ~/.config/ai-secrets.env 中配置 TELEGRAM_BOT_TOKEN
 
+TELEGRAM_BOT_TOKEN="8584832051:AAFMJHPs9avTZHNDJNPTDMmq82vgvpSYXi4"
 INPUT=$(cat)
 TRANSCRIPT_PATH=$(echo "$INPUT" | jq -r '.transcript_path')
 CHAT_ID_FILE=~/.claude/telegram_chat_id
 PENDING_FILE=~/.claude/telegram_pending
-
-# 检查 Token 是否配置
-if [ -z "$TELEGRAM_BOT_TOKEN" ]; then
-    echo "Error: TELEGRAM_BOT_TOKEN not set" >&2
-    exit 1
-fi
 
 # Only respond to Telegram-initiated messages
 [ ! -f "$PENDING_FILE" ] && exit 0
