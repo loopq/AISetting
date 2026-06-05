@@ -2,7 +2,9 @@
 # Claude Code Stop hook - sends response back to Telegram
 # Install: copy to ~/.claude/hooks/ and add to ~/.claude/settings.json
 
-TELEGRAM_BOT_TOKEN="8584832051:AAFMJHPs9avTZHNDJNPTDMmq82vgvpSYXi4"
+# Token 从 ai-secrets.env 读取，不硬编码（文件见 docs/secrets-template.env）
+[ -f "$HOME/.config/ai-secrets.env" ] && source "$HOME/.config/ai-secrets.env"
+[ -z "$TELEGRAM_BOT_TOKEN" ] && exit 0
 INPUT=$(cat)
 TRANSCRIPT_PATH=$(echo "$INPUT" | jq -r '.transcript_path')
 CHAT_ID_FILE=~/.claude/telegram_chat_id

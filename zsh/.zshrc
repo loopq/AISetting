@@ -11,7 +11,7 @@ source $ZSH/oh-my-zsh.sh
 # ================================================= #
 typeset -U path # 自动去重
 
-# --- 编程语言与开发工具 ---
+# --- 编程语言与开发工具 (从 .bash_profile 迁入) ---
 # Java (JDK 17)
 export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home"
 export CLASSPATH="$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar:."
@@ -37,11 +37,11 @@ path=(
     "/opt/homebrew/bin"
     "/opt/homebrew/sbin"
     "/opt/homebrew/opt/ruby/bin"
-    "/opt/homebrew/opt/ffmpeg-full/bin"
-    "/opt/homebrew/bin/python3.11"
+    "/opt/homebrew/opt/ffmpeg-full/bin",
+    "/opt/homebrew/bin/python3.11",
     "$HOME/.antigravity/antigravity/bin"
     "$HOME/.bun/bin"
-    "$HOME/.local/bin"
+    "$HOME/.local/bin",
     $path
 )
 export PATH
@@ -55,10 +55,10 @@ export BUN_INSTALL="$HOME/.bun"
 export no_proxy="localhost,127.0.0.1"
 
 alias proxyhp='
-    export http_proxy=http://127.0.0.1:52019;
-    export https_proxy=http://127.0.0.1:52019;
-    export all_proxy=socks5://127.0.0.1:52019;
-    echo "终端代理已开启 (Port: 52019)"
+    export http_proxy=http://127.0.0.1:7890;
+    export https_proxy=http://127.0.0.1:7890;
+    export all_proxy=socks5://127.0.0.1:7890;
+    echo "终端代理已开启 (Port: 7890)"
 '
 alias unproxyhp='
     unset http_proxy https_proxy all_proxy;
@@ -72,11 +72,10 @@ alias zshconfig="code ~/.zshrc"
 alias reload="source ~/.zshrc"
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
-# 项目路径别名（根据实际项目调整）
-alias "/neku"="cd $HOME/dev/git/zthd/avatar/Avatar-Android"
-alias "/oc"="cd $HOME/dev/git/zthd/avatar/OC_Avatar"
-alias "/zthd"="cd $HOME/dev/git/zthd"
-
+alias "/neku"="cd /Users/loopq/dev/git/zthd/avatar/Avatar-Android"
+alias "/oc"="cd /Users/loopq/dev/git/zthd/avatar/OC_Avatar"
+# alias "/zthd"="cd /Users/loopq/dev/git/zthd"
+alias "/zthd"="node .claude/skills/zthd/scripts/zthd.js"
 # CoolVibe
 export PATH="$HOME/.coolvibe/bin:$PATH"
 
@@ -84,44 +83,35 @@ export PATH="$HOME/.coolvibe/bin:$PATH"
 
 # Claude alias
 alias ccd="claude --dangerously-skip-permissions"
+alias ccrc="caffeinate -ims -t 14400 claude --remote-control"
+csleep() {
+  local pid=$(pgrep -n claude)
+  if [[ -z "$pid" ]]; then
+    echo "❌ no claude running — csleep needs a target" >&2
+    return 1
+  fi
+  caffeinate -ims -t 14400 -w "$pid" &!
+  echo "✅ caffeinate bg, watching claude PID=$pid, 4h cap"
+}
+alias cclear='pkill -x caffeinate && echo "✅ caffeinate cleared" || echo "nothing to clear"'
+
 export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
 
-# ================================================= #
-# 5. AI 工具环境变量
-# ================================================= #
-# 加载敏感信息（在新机器上需要配置）
-[ -f "$HOME/.config/ai-secrets.env" ] && source "$HOME/.config/ai-secrets.env"
-
-# ================================================= #
-# 6. 自定义函数
-# ================================================= #
-function zg-switch() {
-    local ZG="$HOME/bin/zg"
-    local ZG_DIR="$HOME/dev/tools/zerogravity"
-
-    if [ -z "$1" ]; then
-        echo "Usage: zg-switch <email>"
-        return 1
-    fi
-
-    "$ZG" accounts set "$1"
-    (cd "$ZG_DIR" && docker compose restart)
-
-    # 等待容器真正运行
-    echo "Waiting for container to be ready..."
-    local max_wait=30
-    local i=0
-    while [ $i -lt $max_wait ]; do
-        local state=$(docker inspect --format='{{.State.Status}}' zerogravity 2>/dev/null)
-        if [ "$state" = "running" ]; then
-            break
-        fi
-        sleep 1
-        i=$((i + 1))
-    done
-
-    "$ZG" status
-}
+# Codex alias
+alias cxd="codex --dangerously-bypass-approvals-and-sandbox"
+alias cxr="codex -a never -s read-only"
+alias cxw="codex -a never -s workspace-write"
 
 # Added by Antigravity
-export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
+export PATH="/Users/loopq/.antigravity/antigravity/bin:$PATH"
+# export DISABLE_TELEMETRY=1 影响 remote-control
+# 敏感信息（token 等）统一放 ai-secrets.env，不进 git
+[ -f "$HOME/.config/ai-secrets.env" ] && source "$HOME/.config/ai-secrets.env"
+# 太慢了，收益不大
+# export CLAUDE_CODE_EFFORT_LEVEL=max
+export CLAUDE_CODE_EFFORT_LEVEL=xhigh
+
+# ================================================= #
+# Git Worktree 工具链（create / apply / destroy）
+# ================================================= #
+source ~/.config/worktree-tools/worktree.zsh

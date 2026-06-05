@@ -8,6 +8,7 @@ description: Use when the user says "/plan-review", "plan review", or "PRD revie
 ## Purpose
 
 When the user runs `/plan-review {plan-file-path}`, start the "adversarial plan iteration" workflow:
+
 1. I (Claude Code) ask Codex to perform a critical review of the specified plan.
 2. I read the review produced by Codex and evaluate whether its suggestions are sound.
 3. I revise the plan based on valid suggestions and write changes back to the original plan file.
@@ -26,9 +27,24 @@ After each Codex invocation, extract `session_id=xxx` from the script output and
 
 ## My Workflow (Claude Code)
 
+### Step 0: Ensure Local PRD Available
+
+Before invoking Codex, guarantee that the PRD (if any) is on disk so Codex can read it without MCP access.
+
+1. Read the plan file
+2. Look near the top for `**PRD**: [飞书原文](feishu_url) · [本地副本](local_path)`
+3. Branches:
+   - **Both links present, local file exists** → continue to Step 1
+   - **Both links present, local file missing** → use `lark-doc` skill (`lark-cli docs +fetch --api-version v2 --doc-format markdown --doc <feishu_url> --as user`), save `data.document.content` to `local_path` with frontmatter (`title`, `feishu_url`, `doc_id`, `fetched_at` in ISO 8601 UTC), then continue
+   - **Only Feishu URL present** (no local副本 link) → fetch via `lark-doc` skill, save to `docs/feishu-prds/{YYYY-MM-DD}-{topic}.md`, then update plan header to add the `· [本地副本](...)` segment, then continue
+   - **No PRD reference at all** → continue without PRD; review will be plan-only and Codex will note this gap
+
+See the `飞书 PRD 持久化` section in CLAUDE.md / AGENTS.md for naming, frontmatter, and dedup rules.
+
 ### Step 1: Determine the Review File
 
 Derive the review file path from the plan file name:
+
 - `plans/auth-refactor.md` → `reviews/auth-refactor-review.md`
 - Rule: `reviews/{plan-file-name-without-.md}-review.md`
 
@@ -41,6 +57,12 @@ Use the `/codex` skill and give Codex the following instruction:
 ```
 Read the contents of {plan-file-path} and review it critically as an independent third-party reviewer.
 
+PRD context:
+- Look near the top of the plan for a line `**PRD**: [飞书原文](url) · [本地副本](path)`.
+- If a local copy path is present, **read it with the Read tool** and use it to validate the plan against the original requirement.
+- Cross-check the plan covers all PRD requirements (no missing scope), does not silently expand beyond PRD scope, and that data shapes / API specs / event-tracking fields match between plan and PRD.
+- If only a Feishu URL is given (no local copy), note "PRD validation skipped — no local copy" in the Round summary.
+
 Requirements:
 - Raise at least 10 concrete and actionable improvement points
 - Each issue must include: issue description + exact location/reference in the plan + improvement suggestion
@@ -48,6 +70,7 @@ Requirements:
 - If {review-file-path} already exists, read it first and track the resolution status of previous issues in the new round
 
 Analysis dimensions, choosing the relevant ones based on the plan type:
+- PRD alignment: completeness vs PRD requirements, scope creep, spec-level mismatches (when local PRD copy is available)
 - Architectural soundness: overdesign vs underdesign, module boundaries, single responsibility
 - Technology choices: rationale, alternatives, compatibility with the existing project stack
 - Completeness: missing scenarios, overlooked edge cases, dependency and impact scope
@@ -110,15 +133,16 @@ After Codex finishes, I read the latest review round in the review file:
 
 Use the `Consensus Status` provided by Codex:
 
-| Status | My Action |
-|--------|---------|
-| `NEEDS_REVISION` | Revise the plan, then automatically ask Codex to review again and return to Step 2 |
-| `MOSTLY_GOOD` | Revise the plan, then tell the user the plan is mostly mature and ask whether another review round is needed |
-| `APPROVED` | Tell the user the plan has passed review and is ready for implementation |
+| Status           | My Action                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------------ |
+| `NEEDS_REVISION` | Revise the plan, then automatically ask Codex to review again and return to Step 2                           |
+| `MOSTLY_GOOD`    | Revise the plan, then tell the user the plan is mostly mature and ask whether another review round is needed |
+| `APPROVED`       | Tell the user the plan has passed review and is ready for implementation                                     |
 
 ### Step 5: Wrap Up
 
 After the iteration is complete, report the following to the user:
+
 - How many review rounds were completed
 - Which major areas were improved
 - The final plan file path

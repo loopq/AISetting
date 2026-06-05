@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/loopq/.cc-subscription-switch/accounts/**)",
+      "Read(//Users/loopq/.claude/**)",
+      "Bash(python3 -m json.tool)",
+      "Read(//usr/local/bin/**)",
+      "Bash(npm root:*)",
+      "Bash(xargs ls:*)",
+      "Read(//Users/loopq/.cc-subscription-switch/**)",
+      "Read(//opt/homebrew/**)",
+      "Bash(cargo install:*)"
+    ]
+  }
+}

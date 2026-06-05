@@ -8,9 +8,9 @@ description: 产出或编辑飞书 PRD 文档，面向产品和测试团队。�
 ## 工作流程
 
 1. **收集输入** — 确认用户已提供 commits、需求描述、代码变更或设计稿
-2. **获取模板结构** — 使用 `feishu-mcp` fetch-doc 获取飞书模板：`https://stickerstyle.feishu.cn/docx/UNsmdZiPIoezPIxcT7TcYgUznwx`
+2. **获取模板结构** — 通过 `lark-doc` skill 拉取飞书模板：`lark-cli docs +fetch --api-version v2 --doc-format markdown --doc "https://stickerstyle.feishu.cn/docx/UNsmdZiPIoezPIxcT7TcYgUznwx" --as user`
 3. **生成 PRD** — 按下方规范生成内容，按需取舍模块
-4. **询问写入飞书** — 生成完毕后询问用户是否调用 `feishu-mcp` 创建/更新文档
+4. **询问写入飞书** — 生成完毕后询问用户是否通过 `lark-doc` skill 创建/更新文档
 
 ## 写作核心原则
 
@@ -41,8 +41,10 @@ description: 产出或编辑飞书 PRD 文档，面向产品和测试团队。�
 
 ## 写入飞书
 
-如用户确认写入飞书：
-- 创建新文档：`feishu-mcp create-doc`
-- 更新已有文档：`feishu-mcp update-doc`（用户提供文档链接）
+如用户确认写入飞书，通过 `lark-doc` skill 执行：
+- 创建新文档：`lark-cli docs +create --api-version v2 --content "<title>...</title><p>...</p>" --as user`（默认 DocxXML；若以 markdown 写入，加 `--doc-format markdown`）
+- 更新已有文档：`lark-cli docs +update --api-version v2 --doc "<URL>" --command append --content "..." --as user`（用户提供文档链接）
+
+如 `lark-cli` 报 token 失效或 `missing_scope`，按 `lark-shared` skill 的 split-flow 流程重新授权：`lark-cli auth login --domain docs,drive,wiki,markdown --recommend --no-wait --json`。
 
 详细写作示例参见 `references/prd-examples.md`

@@ -49,7 +49,7 @@ Skill 每次启动先读 `index.md` 判断当前阶段，避免重复讨论：
 
 ### Step 1. 读 PRD
 
-使用 `mcp__feishu-mcp__fetch-doc`，`doc_id` 从 URL 路径最后一段提取。文档过大分段读取，必须读完全部内容再分析。
+使用 `lark-doc` skill：`lark-cli docs +fetch --api-version v2 --doc-format markdown --doc <feishu_url> --as user`，`doc_id` 从 URL 路径最后一段提取。文档过大用 `--scope outline` 先看大纲、`--scope section --section-id <id>` 分段读取，必须读完全部内容再分析。
 
 **模式 B（已在对话中讨论过 PRD）**：跳过此步，直接进入 Step 2。
 

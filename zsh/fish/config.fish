@@ -1,3 +1,3 @@
 if status is-interactive
-    # interactive only
+    # Commands to run in interactive sessions can go here
 end

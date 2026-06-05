@@ -8,6 +8,7 @@ description: Use when executing a multi-phase plan where one or more foundation 
 ## Overview
 
 Extends `execute-with-review` with DAG-style phase execution:
+
 - `[foundation]` phases run **sequentially first** (blocking gate)
 - All remaining phases **dispatch in parallel** as subagents after foundation completes
 - Any phase failure **aborts everything**
@@ -34,6 +35,7 @@ Independent — runs in parallel with Phase 1.
 ```
 
 **Rules:**
+
 - Any phase tagged `[foundation]` blocks all parallel phases
 - Multiple `[foundation]` phases execute in document order, one by one
 - Phases without the tag all dispatch simultaneously after foundations complete
@@ -42,6 +44,20 @@ Independent — runs in parallel with Phase 1.
 ---
 
 ## The Process
+
+### Step 0: Ensure Local PRD Available
+
+Before activating the review loop, make sure any PRD referenced by the plan is persisted locally so Codex can read it during the final full-diff review without needing MCP access.
+
+1. Read the plan file you are about to execute
+2. Look near the top for `**PRD**: [飞书原文](feishu_url) · [本地副本](local_path)`
+3. Branches:
+   - **Both links present, local file exists** → continue to Step 1
+   - **Both links present, local file missing** → use `lark-doc` skill (`lark-cli docs +fetch --api-version v2 --doc-format markdown --doc <feishu_url> --as user`), save `data.document.content` to `local_path` with frontmatter (`title`, `feishu_url`, `doc_id`, `fetched_at` in ISO 8601 UTC), then continue
+   - **Only Feishu URL present** (no 本地副本 link) → fetch via `lark-doc` skill, save to `docs/feishu-prds/{YYYY-MM-DD}-{topic}.md`, update plan header to add the `· [本地副本](...)` segment, then continue
+   - **No PRD reference at all** → continue without PRD; the post-execution review will be code-only
+
+See `飞书 PRD 持久化` in CLAUDE.md / AGENTS.md for naming and frontmatter rules.
 
 ### Step 1: Initialize Review Loop State
 
@@ -101,10 +117,10 @@ If this fails (missing Codex, active loop), fix the prerequisite before continui
 
 Read the plan file and categorize:
 
-| Category | Criteria | Execution |
-|----------|----------|-----------|
-| Foundation | heading contains `[foundation]` | Sequential, in document order |
-| Parallel | all other phase headings | Simultaneous batch after foundation |
+| Category   | Criteria                        | Execution                           |
+| ---------- | ------------------------------- | ----------------------------------- |
+| Foundation | heading contains `[foundation]` | Sequential, in document order       |
+| Parallel   | all other phase headings        | Simultaneous batch after foundation |
 
 Before dispatching, scan all phases for **file ownership** — list which files each phase will touch. This prevents parallel agents from conflicting on the same file.
 
@@ -123,6 +139,7 @@ Do NOT proceed to Step 4 until all foundation phases succeed.
 Send **all** parallel-phase Agent calls **in one message** so they run concurrently.
 
 Each agent prompt must include (see template below):
+
 - Its specific phase scope
 - Summary of what foundation phases produced (files created, APIs exposed)
 - File ownership map (which files other parallel phases own — do not touch)
@@ -130,6 +147,7 @@ Each agent prompt must include (see template below):
 **Wait for ALL agents to complete.**
 
 If **any** agent reports failure or blocker:
+
 1. Cancel the review loop: run `/cancel-review`
 2. Report all failures to the user
 3. **STOP** — do not proceed to review
@@ -154,8 +172,13 @@ This covers the **full git diff** — all phases combined.
 ### Step 7: Address Review Findings
 
 1. Read the review file
-2. For each finding: agree → fix it; disagree → note why you skip it
-3. Critical/high severity first
+2. **If the plan referenced a local PRD copy**, read it with the Read tool and cross-check the combined implementation against the original requirement:
+   - Did the implementation cover all PRD requirements across all phases (no missing scope)?
+   - Did any phase silently expand beyond PRD scope?
+   - Do data shapes / API specs / event-tracking fields match between code and PRD?
+   - Note any PRD-vs-code mismatch as an additional finding to address
+3. For each finding (from Codex and your own PRD check): agree → fix it; disagree → note why you skip it
+4. Critical/high severity first
 
 ### Step 8: Complete Development
 
